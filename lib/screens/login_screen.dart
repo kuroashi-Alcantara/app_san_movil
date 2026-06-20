@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,6 +11,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -79,10 +82,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () {
-                      print('Correo: ${_emailController.text}');
-                      print('Clave: ${_passwordController.text}');
-                    },
+                    onPressed: () async {
+                        // Capturamos lo que el usuario escribió
+                        String email = _emailController.text;
+                        String password = _passwordController.text;
+
+                        print("Botón presionado. Enviando datos...");
+
+                        // Llamamos al servicio (y esperamos a que termine con 'await')
+                        await _authService.loginUser(email, password);
+                      },
                     child: const Text(
                       'Ingresar',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
