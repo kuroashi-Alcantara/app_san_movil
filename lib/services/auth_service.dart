@@ -14,7 +14,7 @@ class AuthService {
     }
   }
 
-  Future<void> loginUser(String email, String password) async {
+  Future<Map<String, dynamic>?> loginUser(String email, String password) async {
     final String url = "$baseUrl/Usuario/login";
     print("Intentando conectar a: $url");
 
@@ -37,7 +37,10 @@ class AuthService {
       print("Respuesta del servidor: ${response.body}");
 
       if (response.statusCode == 200) {
+        print("Respuesta del servidor: ${response.body}");
         print("¡Login exitoso! El backend nos aceptó.");
+        
+        return jsonDecode(response.body);
       } else {
         print("El backend rechazó la petición. Revisa las credenciales.");
       }

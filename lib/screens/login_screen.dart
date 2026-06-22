@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'dashboard_screen.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -83,15 +84,36 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     onPressed: () async {
-                        // Capturamos lo que el usuario escribió
-                        String email = _emailController.text;
-                        String password = _passwordController.text;
+                      // 1. Capturamos lo que el usuario escribió
+                      String email = _emailController.text;
+                      String password = _passwordController.text;
 
-                        print("Botón presionado. Enviando datos...");
+                      print("Botón presionado. Enviando datos...");
 
-                        // Llamamos al servicio (y esperamos a que termine con 'await')
-                        await _authService.loginUser(email, password);
-                      },
+                      // 2. Guardamos la respuesta del servicio en una variable
+                      var respuesta = await _authService.loginUser(email, password);
+
+                      // 3. Verificamos si el backend nos devolvió un token
+                      if (respuesta != null && respuesta.containsKey('token')) {
+                        // ¡Éxito! Hacemos el salto visual
+                        if (context.mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+                          );
+                        }
+                      } else {
+                        // Opcional: Mostrar un mensaje si falla la clave
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Error: Credenciales incorrectas'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
                     child: const Text(
                       'Ingresar',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
