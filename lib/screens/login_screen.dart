@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'dashboard_screen.dart'; 
+import 'home_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -98,9 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (respuesta != null && respuesta.containsKey('token')) {
                         // ¡Éxito! Hacemos el salto visual
                         if (context.mounted) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+                           Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const HomeScreen()),
                           );
                         }
                       } else {

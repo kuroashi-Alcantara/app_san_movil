@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'login_screen.dart';
-import 'dashboard_screen.dart';
+import 'home_screen.dart';
 
 class CheckAuthScreen extends StatefulWidget {
   const CheckAuthScreen({super.key});
@@ -32,7 +32,7 @@ class _CheckAuthScreenState extends State<CheckAuthScreen> {
       // ¡Sí hay token! El usuario ya estaba logueado. Salto al Dashboard.
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else {
       // Bóveda vacía. Salto al Login.
