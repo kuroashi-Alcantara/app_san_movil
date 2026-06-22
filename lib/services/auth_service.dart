@@ -2,9 +2,12 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
   late String baseUrl;
+
+  final _storage = const FlutterSecureStorage();
 
   AuthService() {
     if (kIsWeb) {
@@ -37,12 +40,24 @@ class AuthService {
       print("Respuesta del servidor: ${response.body}");
 
       if (response.statusCode == 200) {
-        print("Respuesta del servidor: ${response.body}");
         print("¡Login exitoso! El backend nos aceptó.");
         
-        return jsonDecode(response.body);
+        // 1. Decodificamos el JSON
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        
+        // 2. Extraemos el token específico
+        String token = responseData['token'];
+        
+        // 3. ¡Lo guardamos en la bóveda del celular!
+        await _storage.write(key: 'auth_token', value: token);
+        
+        print("Token guardado de forma segura en el dispositivo.");
+
+        // 4. Retornamos toda la data para que la pantalla pueda hacer el salto
+        return responseData; 
       } else {
-        print("El backend rechazó la petición. Revisa las credenciales.");
+        print("Error en el login");
+        return null; 
       }
 
     } catch (e) {
