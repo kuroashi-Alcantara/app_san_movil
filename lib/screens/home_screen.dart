@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'login_screen.dart';
-import 'dashboard_screen.dart'; // Importamos el dashboard para poder navegar a él
+import 'dashboard_screen.dart';
+import 'rooms_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,7 +11,7 @@ class HomeScreen extends StatelessWidget {
   Future<void> _cerrarSesion(BuildContext context) async {
     const storage = FlutterSecureStorage();
     await storage.delete(key: 'auth_token');
-    
+
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -25,11 +26,16 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Inicio - Api-san', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Inicio - Api-san',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.green[700],
-        iconTheme: const IconThemeData(color: Colors.white), // Hace que el ícono de las 3 rayitas sea blanco
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ), // Hace que el ícono de las 3 rayitas sea blanco
       ),
-      
+
       // --- EL MENÚ LATERAL (DRAWER) ---
       drawer: Drawer(
         child: Column(
@@ -41,43 +47,73 @@ class HomeScreen extends StatelessWidget {
                 backgroundColor: Colors.white,
                 child: Icon(Icons.person, size: 40, color: Colors.green),
               ),
-              accountName: const Text('Anabel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              accountName: const Text(
+                'Anabel',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
               accountEmail: const Text('Administradora de Sanes'),
             ),
-            
+
             // Opciones del Menú
             ListTile(
               leading: const Icon(Icons.home, color: Colors.green),
               title: const Text('Inicio', style: TextStyle(fontSize: 16)),
-              onTap: () => Navigator.pop(context), // Solo cierra el menú porque ya estamos aquí
+              onTap: () => Navigator.pop(
+                context,
+              ), // Solo cierra el menú porque ya estamos aquí
+            ),
+            ListTile(
+              leading: const Icon(Icons.view_carousel, color: Colors.purple),
+              title: const Text('Mis Salas', style: TextStyle(fontSize: 16)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RoomsScreen()),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.analytics_outlined, color: Colors.blue),
-              title: const Text('Dashboard Financiero', style: TextStyle(fontSize: 16)),
+              title: const Text(
+                'Dashboard Financiero',
+                style: TextStyle(fontSize: 16),
+              ),
               onTap: () {
                 Navigator.pop(context); // Cierra el menú lateral
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const DashboardScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const DashboardScreen(),
+                  ),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.group, color: Colors.orange),
-              title: const Text('Gestión de Clientes', style: TextStyle(fontSize: 16)),
+              title: const Text(
+                'Gestión de Clientes',
+                style: TextStyle(fontSize: 16),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 print('Ir a clientes');
               },
             ),
-            
+
             const Spacer(), // Empuja todo lo que esté abajo hacia el final de la pantalla
             const Divider(),
-            
+
             // Botón de Cerrar Sesión al final del menú
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Cerrar Sesión',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               onTap: () => _cerrarSesion(context),
             ),
             const SizedBox(height: 20),
@@ -113,15 +149,28 @@ class HomeScreen extends StatelessWidget {
                 padding: EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Icon(Icons.wb_sunny_outlined, color: Colors.amber, size: 30),
+                    Icon(
+                      Icons.wb_sunny_outlined,
+                      color: Colors.amber,
+                      size: 30,
+                    ),
                     SizedBox(width: 15),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Recordatorio de Cobros', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(
+                            'Recordatorio de Cobros',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                           SizedBox(height: 4),
-                          Text('Tienes cobros pendientes quincenales que vencen hoy.', style: TextStyle(fontSize: 14)),
+                          Text(
+                            'Tienes cobros pendientes quincenales que vencen hoy.',
+                            style: TextStyle(fontSize: 14),
+                          ),
                         ],
                       ),
                     ),
@@ -141,9 +190,24 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: ListView(
                 children: [
-                  _crearTarjetaSan('San Diario - Mercado', 'Progreso: 12/20 días', 0.6, Colors.green),
-                  _crearTarjetaSan('San Quincenal - Personal', 'Progreso: 3/10 quincenas', 0.3, Colors.blue),
-                  _crearTarjetaSan('San Semanal - Amigas', 'Progreso: 8/12 semanas', 0.66, Colors.purple),
+                  _crearTarjetaSan(
+                    'San Diario - Mercado',
+                    'Progreso: 12/20 días',
+                    0.6,
+                    Colors.green,
+                  ),
+                  _crearTarjetaSan(
+                    'San Quincenal - Personal',
+                    'Progreso: 3/10 quincenas',
+                    0.3,
+                    Colors.blue,
+                  ),
+                  _crearTarjetaSan(
+                    'San Semanal - Amigas',
+                    'Progreso: 8/12 semanas',
+                    0.66,
+                    Colors.purple,
+                  ),
                 ],
               ),
             ),
@@ -163,7 +227,12 @@ class HomeScreen extends StatelessWidget {
   }
 
   // Widget auxiliar para crear las barras de progreso de los Sanes
-  Widget _crearTarjetaSan(String titulo, String subtitulo, double progreso, Color color) {
+  Widget _crearTarjetaSan(
+    String titulo,
+    String subtitulo,
+    double progreso,
+    Color color,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -173,9 +242,15 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(
+              titulo,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 5),
-            Text(subtitulo, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+            Text(
+              subtitulo,
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
+            ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
               value: progreso,
