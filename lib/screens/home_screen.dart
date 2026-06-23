@@ -3,6 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
 import 'rooms_screen.dart';
+import 'finance_screen.dart';
+import 'profile_screen.dart';
+import 'contacts_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -90,14 +93,49 @@ class HomeScreen extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.bar_chart, color: Colors.blue),
+              title: const Text('Finanzas', style: TextStyle(fontSize: 16)),
+              onTap: () {
+                Navigator.pop(context); // Cierra el menú
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FinanceScreen(),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
               leading: const Icon(Icons.group, color: Colors.orange),
               title: const Text(
                 'Gestión de Clientes',
                 style: TextStyle(fontSize: 16),
               ),
               onTap: () {
-                Navigator.pop(context);
-                print('Ir a clientes');
+                Navigator.pop(context); // Cierra el menú
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ContactsScreen(),
+                  ),
+                  );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings, color: Colors.grey),
+              title: const Text(
+                'Configuración',
+                style: TextStyle(fontSize: 16),
+              ),
+              onTap: () {
+                Navigator.pop(context); // Oculta el menú lateral
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
               },
             ),
 
