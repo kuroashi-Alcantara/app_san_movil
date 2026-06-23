@@ -3,17 +3,20 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart'; // Esto nos permite usar kIsWeb
 
 class AuthService {
   late String baseUrl;
 
   final _storage = const FlutterSecureStorage();
 
-  AuthService() {
+ AuthService() {
     if (kIsWeb) {
-      baseUrl = "https://localhost:7224/api";
+      // Apuntamos al puerto HTTP real que nos da tu backend
+      baseUrl = "http://localhost:5296/api"; 
     } else if (Platform.isAndroid) {
-      baseUrl = "https://10.0.2.2:7224/api";
+      // El emulador usa la IP puente pero al mismo puerto HTTP seguro para Android
+      baseUrl = "http://10.0.2.2:5296/api"; 
     }
   }
 
