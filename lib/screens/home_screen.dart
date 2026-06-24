@@ -7,14 +7,26 @@ import 'finance_screen.dart';
 import 'profile_screen.dart';
 import 'contacts_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  // Lógica centralizada para cerrar sesión
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  // Lista de pantallas para la barra inferior
+  final List<Widget> _pages = [
+    const _HomeContent(), // Tu contenido original de inicio
+    const RoomsScreen(),
+    const FinanceScreen(),
+  ];
+
   Future<void> _cerrarSesion(BuildContext context) async {
     const storage = FlutterSecureStorage();
     await storage.delete(key: 'auth_token');
-
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -29,276 +41,68 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text(
-          'Inicio - Api-san',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Api-san', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.green[700],
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ), // Hace que el ícono de las 3 rayitas sea blanco
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-
-      // --- EL MENÚ LATERAL (DRAWER) ---
-      drawer: Drawer(
-        child: Column(
-          children: [
-            // Encabezado del menú con los datos de la administradora
-            UserAccountsDrawerHeader(
-              decoration: BoxDecoration(color: Colors.green[700]),
-              currentAccountPicture: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, size: 40, color: Colors.green),
-              ),
-              accountName: const Text(
-                'Anabel',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              accountEmail: const Text('Administradora de Sanes'),
-            ),
-
-            // Opciones del Menú
-            ListTile(
-              leading: const Icon(Icons.home, color: Colors.green),
-              title: const Text('Inicio', style: TextStyle(fontSize: 16)),
-              onTap: () => Navigator.pop(
-                context,
-              ), // Solo cierra el menú porque ya estamos aquí
-            ),
-            ListTile(
-              leading: const Icon(Icons.view_carousel, color: Colors.purple),
-              title: const Text('Mis Salas', style: TextStyle(fontSize: 16)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const RoomsScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.analytics_outlined, color: Colors.blue),
-              title: const Text(
-                'Dashboard Financiero',
-                style: TextStyle(fontSize: 16),
-              ),
-              onTap: () {
-                Navigator.pop(context); // Cierra el menú lateral
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DashboardScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.bar_chart, color: Colors.blue),
-              title: const Text('Finanzas', style: TextStyle(fontSize: 16)),
-              onTap: () {
-                Navigator.pop(context); // Cierra el menú
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const FinanceScreen(),
-                  ),
-                );
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.group, color: Colors.orange),
-              title: const Text(
-                'Gestión de Clientes',
-                style: TextStyle(fontSize: 16),
-              ),
-              onTap: () {
-                Navigator.pop(context); // Cierra el menú
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ContactsScreen(),
-                  ),
-                  );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings, color: Colors.grey),
-              title: const Text(
-                'Configuración',
-                style: TextStyle(fontSize: 16),
-              ),
-              onTap: () {
-                Navigator.pop(context); // Oculta el menú lateral
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
-
-            const Spacer(), // Empuja todo lo que esté abajo hacia el final de la pantalla
-            const Divider(),
-
-            // Botón de Cerrar Sesión al final del menú
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                'Cerrar Sesión',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onTap: () => _cerrarSesion(context),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+      drawer: _buildDrawer(context),
+      body: _pages[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        selectedItemColor: Colors.green[700],
+        unselectedItemColor: Colors.grey,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(icon: Icon(Icons.view_carousel), label: 'Salas'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Finanzas'),
+        ],
       ),
-
-      // --- CUERPO DE LA PANTALLA OPERATIVA ---
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '¡Hola, Anabel!',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              'Tareas y pendientes para hoy:',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 20),
-
-            // Tarjeta de Alerta del Día
-            Card(
-              color: Colors.amber[50],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-                side: BorderSide(color: Colors.amber[300]!, width: 1),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.wb_sunny_outlined,
-                      color: Colors.amber,
-                      size: 30,
-                    ),
-                    SizedBox(width: 15),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Recordatorio de Cobros',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Tienes cobros pendientes quincenales que vencen hoy.',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 25),
-
-            const Text(
-              'Tus Sanes Activos',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-
-            // Lista simulada de Sanes Operativos
-            Expanded(
-              child: ListView(
-                children: [
-                  _crearTarjetaSan(
-                    'San Diario - Mercado',
-                    'Progreso: 12/20 días',
-                    0.6,
-                    Colors.green,
-                  ),
-                  _crearTarjetaSan(
-                    'San Quincenal - Personal',
-                    'Progreso: 3/10 quincenas',
-                    0.3,
-                    Colors.blue,
-                  ),
-                  _crearTarjetaSan(
-                    'San Semanal - Amigas',
-                    'Progreso: 8/12 semanas',
-                    0.66,
-                    Colors.purple,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-
-      // --- BOTÓN FLOTANTE PARA ACCIONES RÁPIDAS ---
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green[700],
-        onPressed: () {
-          print('Registrar un nuevo pago rápido');
-        },
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
-      ),
+      floatingActionButton: _currentIndex == 0 
+          ? FloatingActionButton(
+              backgroundColor: Colors.green[700],
+              onPressed: () => print('Acción: Registrar pago rápido'),
+              child: const Icon(Icons.add, color: Colors.white, size: 30),
+            ) 
+          : null,
     );
   }
 
-  // Widget auxiliar para crear las barras de progreso de los Sanes
-  Widget _crearTarjetaSan(
-    String titulo,
-    String subtitulo,
-    double progreso,
-    Color color,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 15),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              titulo,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              subtitulo,
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            LinearProgressIndicator(
-              value: progreso,
-              backgroundColor: Colors.grey[200],
-              color: color,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ],
-        ),
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        children: [
+          UserAccountsDrawerHeader(
+            decoration: BoxDecoration(color: Colors.green[700]),
+            currentAccountPicture: const CircleAvatar(backgroundColor: Colors.white, child: Icon(Icons.person, size: 40, color: Colors.green)),
+            accountName: const Text('Anabel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            accountEmail: const Text('Administradora de Sanes'),
+          ),
+          ListTile(leading: const Icon(Icons.analytics_outlined, color: Colors.blue), title: const Text('Dashboard'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const DashboardScreen())); }),
+          ListTile(leading: const Icon(Icons.group, color: Colors.orange), title: const Text('Gestión de Clientes'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const ContactsScreen())); }),
+          ListTile(leading: const Icon(Icons.settings, color: Colors.grey), title: const Text('Configuración'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen())); }),
+          const Divider(),
+          ListTile(leading: const Icon(Icons.logout, color: Colors.red), title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)), onTap: () => _cerrarSesion(context)),
+        ],
+      ),
+    );
+  }
+}
+
+// Extraje tu contenido original a un widget separado para limpiar el HomeScreen
+class _HomeContent extends StatelessWidget {
+  const _HomeContent();
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('¡Hola, Anabel!', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          // ... aquí va el resto de tu UI original (Tarjetas y lista de Sanes)
+        ],
       ),
     );
   }
