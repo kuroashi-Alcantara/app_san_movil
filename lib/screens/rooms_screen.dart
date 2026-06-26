@@ -39,6 +39,10 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
         backgroundColor: themeColor,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,

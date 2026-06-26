@@ -41,14 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
+      /*appBar: AppBar(
         title: const Text(
           'Api-san',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.green[700],
         iconTheme: const IconThemeData(color: Colors.white),
-      ),
+      ),*/
 
       // 2. EL DRAWER LIMPIO (SOLO GESTIÓN Y AUDITORÍA)
       drawer: _buildDrawer(context),
@@ -194,13 +194,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// 5. TU DISEÑO ORIGINAL RESTAURADO COMPLETO
+// 5.DISEÑO ORIGINAL RESTAURADO COMPLETO
 class _HomeContent extends StatelessWidget {
   const _HomeContent();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Scaffold( // Envolvemos todo en un Scaffold
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('Inicio - Api-san', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.green[700],
+        elevation: 0,
+        // Este botón mágico es el que abre el menú lateral del HomeScreen
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => Scaffold.of(context).openDrawer(), 
+        ),
+      ),
+      body:Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,6 +299,7 @@ class _HomeContent extends StatelessWidget {
           ),
         ],
       ),
+      )
     );
   }
 

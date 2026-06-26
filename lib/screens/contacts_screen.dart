@@ -34,6 +34,10 @@ class _ContactsScreenState extends State<ContactsScreen> with SingleTickerProvid
         title: const Text('Contactos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: themeColor,
         iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
