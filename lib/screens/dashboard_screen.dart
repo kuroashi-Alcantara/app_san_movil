@@ -1,144 +1,190 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'login_screen.dart'; 
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  // Método para cerrar sesión (separado para mantener el diseño limpio)
-  Future<void> _cerrarSesion(BuildContext context) async {
-    const storage = FlutterSecureStorage();
-    await storage.delete(key: 'auth_token');
-    
-    if (context.mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100], // Un fondo ligeramente gris para que resalten las tarjetas blancas
-      appBar: AppBar(
-        title: const Text('Gestor de San', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.green[700], // Verde haciendo juego con tu Login
-        elevation: 0, // Quitamos la sombra para un diseño más plano y moderno
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            tooltip: 'Cerrar Sesión',
-            onPressed: () => _cerrarSesion(context),
-          )
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    // Usamos el color de tu tema (verde)
+    final Color themeColor = Colors.green[700] ?? Colors.green;
+
+    // DefaultTabController nos ahorra usar un StatefulWidget
+    return DefaultTabController(
+      length: 2, // Número de pestañas
+      child: Scaffold(
+        backgroundColor: Colors.grey[100],
+        appBar: AppBar(
+          title: const Text('Dashboard Financiero', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          backgroundColor: themeColor,
+          iconTheme: const IconThemeData(color: Colors.white),
+          elevation: 0,
+          bottom: const TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(icon: Icon(Icons.person), text: 'Como Participante'),
+              Tab(icon: Icon(Icons.admin_panel_settings), text: 'Como Administrador'),
+            ],
+          ),
+        ),
+        body: TabBarView(
           children: [
-            // --- BLOQUE 1: Bienvenida ---
-            const Text(
-              '¡Hola, Anabel!',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 5),
-            const Text(
-              'Este es el resumen de tus operaciones de hoy.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 25),
-
-            // --- BLOQUE 2: Tarjeta de Resumen ---
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.green[600]!, Colors.green[400]!],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  )
-                ],
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Total Recaudado', 
-                    style: TextStyle(color: Colors.white70, fontSize: 16)
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'RD\$ 45,500.00', // Dato quemado por ahora, luego vendrá de tu API
-                    style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold)
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 35),
-
-            // --- BLOQUE 3: Cuadrícula de Acciones Rápidas ---
-            const Text(
-              'Acciones Rápidas',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-            
-            // Usamos Expanded para que la cuadrícula ocupe el resto de la pantalla disponible
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2, // 2 columnas
-                crossAxisSpacing: 15, // Espacio horizontal entre tarjetas
-                mainAxisSpacing: 15,  // Espacio vertical entre tarjetas
-                children: [
-                  _crearBotonMenu(Icons.group, 'Clientes', Colors.blue),
-                  _crearBotonMenu(Icons.account_balance_wallet, 'Mis Sanes', Colors.orange),
-                  _crearBotonMenu(Icons.payments, 'Pagos', Colors.purple),
-                  _crearBotonMenu(Icons.history, 'Historial', Colors.teal),
-                ],
-              ),
-            ),
+            _buildParticipanteView(themeColor),
+            _buildAdminView(themeColor),
           ],
         ),
       ),
     );
   }
 
-  // --- WIDGET REUTILIZABLE ---
-  // Creamos este molde para no escribir el mismo código 4 veces para cada botón
-  Widget _crearBotonMenu(IconData icono, String titulo, Color color) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: InkWell( // InkWell le da el efecto de "onda" al hacer clic
-        onTap: () {
-          print('El usuario quiere ir a la pantalla de: $titulo');
-          // Aquí programaremos la navegación más adelante
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              backgroundColor: color.withOpacity(0.15),
-              radius: 35,
-              child: Icon(icono, size: 35, color: color),
+  // ==========================================
+  // VISTA 1: ESTADÍSTICAS COMO PARTICIPANTE
+  // ==========================================
+  Widget _buildParticipanteView(Color themeColor) {
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        // Tarjeta de Reputación
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: CircleAvatar(
+              backgroundColor: Colors.amber[100],
+              radius: 30,
+              child: const Icon(Icons.workspace_premium, color: Colors.amber, size: 35),
             ),
-            const SizedBox(height: 15),
-            Text(
-              titulo,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            title: const Text('Nivel Oro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            subtitle: const Text('100% de pagos a tiempo\n¡Excelente reputación!'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        // Tarjeta de Ahorros
+        _crearTarjetaEstadistica(
+          titulo: 'Total Recibido (Ahorrado)',
+          valor: 'RD\$ 50,000',
+          icono: Icons.savings,
+          colorIcono: themeColor,
+        ),
+        const SizedBox(height: 16),
+
+        // Tarjeta de Compromisos
+        _crearTarjetaEstadistica(
+          titulo: 'Compromisos de este mes',
+          valor: 'RD\$ 4,500',
+          icono: Icons.calendar_month,
+          colorIcono: Colors.orange,
+        ),
+      ],
+    );
+  }
+
+  // ==========================================
+  // VISTA 2: ESTADÍSTICAS COMO ADMINISTRADOR
+  // ==========================================
+  Widget _buildAdminView(Color themeColor) {
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        // Tarjeta de Capital Movido
+        _crearTarjetaEstadistica(
+          titulo: 'Capital Total Gestionado',
+          valor: 'RD\$ 150,000',
+          icono: Icons.account_balance,
+          colorIcono: Colors.blue[700]!,
+        ),
+        const SizedBox(height: 16),
+
+        // Fila con dos estadísticas pequeñas
+        Row(
+          children: [
+            Expanded(
+              child: _crearTarjetaEstadistica(
+                titulo: 'Sanes Creados',
+                valor: '12',
+                icono: Icons.library_add_check,
+                colorIcono: themeColor,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _crearTarjetaEstadistica(
+                titulo: 'Participantes',
+                valor: '45',
+                icono: Icons.groups,
+                colorIcono: Colors.purple,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Sección de Ranking
+        const Text(
+          'Top Pagadores',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.looks_one, color: Colors.amber),
+                title: const Text('Richard Osoria'),
+                trailing: const Text('100% Puntual', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: Icon(Icons.looks_two, color: Colors.grey[400]),
+                title: const Text('Jonas'),
+                trailing: const Text('98% Puntual', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  // ==========================================
+  // WIDGET REUTILIZABLE PARA LAS TARJETAS
+  // ==========================================
+  Widget _crearTarjetaEstadistica({
+    required String titulo,
+    required String valor,
+    required IconData icono,
+    required Color colorIcono,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorIcono.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icono, color: colorIcono, size: 30),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(titulo, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                  const SizedBox(height: 4),
+                  Text(valor, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black87)),
+                ],
+              ),
             ),
           ],
         ),

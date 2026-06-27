@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const _HomeContent(),
     const RoomsScreen(),
     const FinanceScreen(), // Esta funcionará como "Movimientos"
-    const ContactsScreen(), // Nueva pestaña integrada
+    const ContactsScreen(), 
   ];
 
   Future<void> _cerrarSesion(BuildContext context) async {
@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// 5.DISEÑO ORIGINAL RESTAURADO COMPLETO
+// 5.DISEÑO ORIGINAL 
 class _HomeContent extends StatelessWidget {
   const _HomeContent();
 
@@ -203,7 +203,7 @@ class _HomeContent extends StatelessWidget {
     return Scaffold( // Envolvemos todo en un Scaffold
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Inicio - Api-san', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Inicio - SanRD', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.green[700],
         elevation: 0,
         // Este botón mágico es el que abre el menú lateral del HomeScreen

@@ -29,7 +29,7 @@ class _CheckAuthScreenState extends State<CheckAuthScreen> {
     if (!mounted) return;
 
     if (token != null) {
-      // ¡Sí hay token! El usuario ya estaba logueado. Salto al Dashboard.
+      // ¡Sí hay token! El usuario ya estaba logueado. Salta al inicio.
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
