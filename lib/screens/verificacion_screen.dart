@@ -158,6 +158,34 @@ class _VerificacionScreenState extends State<VerificacionScreen> {
                           ),
                   ),
                 ),
+                const SizedBox(
+                  height: 24,
+                ), // Espacio para separar del botón principal
+                // Fila del botón de rescate
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '¿Te equivocaste de correo?',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // El comando pop destruye la pantalla actual (Verificación)
+                        // y devuelve al usuario a la pantalla de Registro.
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Cambiar correo',
+                        style: TextStyle(
+                          color: Colors.blueAccent,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

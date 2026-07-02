@@ -53,7 +53,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
         );
 
        // NAVEGACIÓN HACIA LA PANTALLA DE VERIFICACIÓN
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => VerificacionScreen(
