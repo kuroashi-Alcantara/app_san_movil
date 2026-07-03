@@ -68,7 +68,7 @@ class _VerificacionScreenState extends State<VerificacionScreen> {
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -77,7 +77,39 @@ class _VerificacionScreenState extends State<VerificacionScreen> {
         backgroundColor: Colors.blueGrey[800],
         foregroundColor: Colors.white,
         elevation: 0,
+        
+
+        automaticallyImplyLeading: false, // Esto quita la flecha de 'Atrás' por defecto
+        leadingWidth: 100, // Le damos más espacio para que quepa el ícono y el texto
+        leading: TextButton.icon(
+          onPressed: () {
+            // Destruye la pila (Verificación y Registro) y abre el Login
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (Route<dynamic> route) => false,
+            );
+          },
+          icon: const Icon(
+            Icons.home, // Ícono de casita
+            color: Colors.white,
+            size: 20,
+          ),
+          label: const Text(
+            'Inicio',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          // Ajusta el padding para que no se vea amontonado
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.only(left: 8),
+          ),
+        ),
       ),
+      
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),

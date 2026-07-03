@@ -106,6 +106,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // 3. Verificamos si el backend nos devolvió un token
                         if (respuesta != null && respuesta.containsKey('token')) {
+
+                          final storage = const FlutterSecureStorage();
+                          
+                          // Guardamos el token por seguridad
+                          await storage.write(key: 'token', value: respuesta['token'].toString());
+                          
+                          // Guardamos el nombre y el correo. 
+                          // OJO: Asegúrate de que tu backend C# esté devolviendo 
+                          // 'nombreCompleto' y 'correo' en la respuesta JSON del login.
+                          await storage.write(
+                            key: 'nombre_usuario', 
+                            value: respuesta['nombreCompleto'] ?? 'Usuario'
+                          );
+                          await storage.write(
+                            key: 'correo_usuario', 
+                            value: respuesta['correo'] ?? email
+                          );
                           // ¡Éxito! Hacemos el salto visual
                           if (context.mounted) {
                             Navigator.pushReplacement(
