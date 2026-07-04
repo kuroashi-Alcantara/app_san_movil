@@ -16,18 +16,41 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  
+  // --- 1. VARIABLES PARA EL USUARIO ---
+  final _storage = const FlutterSecureStorage();
+  String _nombreUsuario = 'Cargando...';
 
-  // 1. AHORA TENEMOS LAS 4 PESTAÑAS
-  final List<Widget> _pages = [
-    const _HomeContent(),
-    const RoomsScreen(),
-    const FinanceScreen(), // Esta funcionará como "Movimientos"
-    const ContactsScreen(), 
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosUsuario(); // Disparamos la búsqueda al abrir la pantalla
+  }
+
+  // --- 2. FUNCIÓN QUE LEE LA BÓVEDA ---
+  Future<void> _cargarDatosUsuario() async {
+    final nombre = await _storage.read(key: 'nombre_usuario');
+    if (mounted) {
+      setState(() {
+        _nombreUsuario = nombre ?? 'Usuario';
+      });
+    }
+  }
+
+  // 3. Convertimos esto en un "getter" (get) para poder pasarle la variable a _HomeContent
+  List<Widget> get _pages => [
+        _HomeContent(nombreUsuario: _nombreUsuario), // Pasamos el nombre aquí
+        const RoomsScreen(),
+        const FinanceScreen(), 
+        const ContactsScreen(), 
+      ];
 
   Future<void> _cerrarSesion(BuildContext context) async {
     const storage = FlutterSecureStorage();
-    await storage.delete(key: 'auth_token');
+    await storage.delete(key: 'token'); // Usar 'token' si así lo guardaste en el login
+    await storage.delete(key: 'nombre_usuario');
+    await storage.delete(key: 'correo_usuario');
+    
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -41,25 +64,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      /*appBar: AppBar(
-        title: const Text(
-          'Api-san',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.green[700],
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),*/
-
-      // 2. EL DRAWER LIMPIO (SOLO GESTIÓN Y AUDITORÍA)
+      
+      // EL DRAWER LIMPIO (SOLO GESTIÓN Y AUDITORÍA)
       drawer: _buildDrawer(context),
 
       body: _pages[_currentIndex],
 
-      // 3. BARRA INFERIOR DE 4 OPCIONES
+      // BARRA INFERIOR DE 4 OPCIONES
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        type: BottomNavigationBarType
-            .fixed, // OBLIGATORIO para 4 ítems o se pondrán blancos
+        type: BottomNavigationBarType.fixed, 
         selectedItemColor: Colors.green[700],
         unselectedItemColor: Colors.grey[600],
         onTap: (index) => setState(() => _currentIndex = index),
@@ -106,9 +120,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: Colors.white,
                 child: Icon(Icons.person, size: 40, color: Colors.green),
               ),
-              accountName: const Text(
-                'Anabel',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              // --- 4. ACTUALIZAMOS EL TEXTO DEL MENÚ LATERAL ---
+              accountName: Text(
+                _nombreUsuario,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
               accountEmail: const Text('Toca para ver tu perfil'),
               margin: EdgeInsets.zero,
@@ -137,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onTap: () {
               Navigator.pop(context);
-              print('Ir a Calculadora'); // Pendiente de crear
+              print('Ir a Calculadora'); 
             },
           ),
           ListTile(
@@ -148,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onTap: () {
               Navigator.pop(context);
-              print('Ir a Archivados'); // Pendiente de crear
+              print('Ir a Archivados'); 
             },
           ),
           ListTile(
@@ -194,32 +209,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// 5.DISEÑO ORIGINAL 
+// 5. DISEÑO ORIGINAL 
 class _HomeContent extends StatelessWidget {
-  const _HomeContent();
+  // --- 5. RECIBIMOS LA VARIABLE DESDE AFUERA ---
+  final String nombreUsuario;
+
+  const _HomeContent({required this.nombreUsuario, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold( // Envolvemos todo en un Scaffold
+    return Scaffold( 
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text('Inicio - SanRD', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.green[700],
         elevation: 0,
-        // Este botón mágico es el que abre el menú lateral del HomeScreen
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () => Scaffold.of(context).openDrawer(), 
         ),
       ),
-      body:Padding(
+      body: Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '¡Hola, Anabel!',
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+          // --- 6. QUITAMOS EL CONST Y USAMOS LA VARIABLE ---
+          Text(
+            '¡Hola, $nombreUsuario!',
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 5),
           Text(

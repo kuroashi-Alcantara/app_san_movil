@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                  onPressed: () async {
+                    onPressed: () async {
                       // 1. Capturamos lo que el usuario escribió
                       String email = _emailController.text.trim();
                       String password = _passwordController.text.trim();
@@ -105,24 +105,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
 
                         // 3. Verificamos si el backend nos devolvió un token
-                        if (respuesta != null && respuesta.containsKey('token')) {
-
+                        if (respuesta != null &&
+                            respuesta.containsKey('token')) {
                           final storage = const FlutterSecureStorage();
-                          
+
                           // Guardamos el token por seguridad
-                          await storage.write(key: 'token', value: respuesta['token'].toString());
-                          
-                          // Guardamos el nombre y el correo. 
-                          // OJO: Asegúrate de que tu backend C# esté devolviendo 
-                          // 'nombreCompleto' y 'correo' en la respuesta JSON del login.
                           await storage.write(
-                            key: 'nombre_usuario', 
-                            value: respuesta['nombreCompleto'] ?? 'Usuario'
+                            key: 'token',
+                            value: respuesta['token'].toString(),
                           );
+
+                          // --- 🛠️ CORRECCIÓN DE LA LLAVE ---
+                          // Buscamos 'nombre' (minúscula) o 'Nombre' (mayúscula) que es como lo envía C#
+                          String nombreReal =
+                              respuesta['nombre'] ??
+                              respuesta['Nombre'] ??
+                              'Usuario';
+
                           await storage.write(
-                            key: 'correo_usuario', 
-                            value: respuesta['correo'] ?? email
+                            key: 'nombre_usuario',
+                            value: nombreReal,
                           );
+
+                          await storage.write(
+                            key: 'correo_usuario',
+                            value: respuesta['correo'] ?? email,
+                          );
+
                           // ¡Éxito! Hacemos el salto visual
                           if (context.mounted) {
                             Navigator.pushReplacement(
@@ -136,14 +145,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       } catch (e) {
                         // ELIMINAMOS la línea de _estaCargando que causaba el error
 
-                        String mensajeError = "Error de conexión o credenciales incorrectas.";
-                        bool requiereVerificacion = false; 
+                        String mensajeError =
+                            "Error de conexión o credenciales incorrectas.";
+                        bool requiereVerificacion = false;
 
                         try {
                           dynamic error = e;
-                          if (error.response != null && error.response.data != null) {
-                            mensajeError = error.response.data['mensaje'] ?? mensajeError;
-                            requiereVerificacion = error.response.data['requiereVerificacion'] ?? false;
+                          if (error.response != null &&
+                              error.response.data != null) {
+                            mensajeError =
+                                error.response.data['mensaje'] ?? mensajeError;
+                            requiereVerificacion =
+                                error.response.data['requiereVerificacion'] ??
+                                false;
                           }
                         } catch (_) {}
 
@@ -151,22 +165,27 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Si el backend dice que requiere verificación
                           if (requiereVerificacion) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(mensajeError), backgroundColor: Colors.orange),
+                              SnackBar(
+                                content: Text(mensajeError),
+                                backgroundColor: Colors.orange,
+                              ),
                             );
 
                             // Saltamos a la pantalla pasándole el correo
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => VerificacionScreen(
-                                  correo: email,
-                                ),
+                                builder: (context) =>
+                                    VerificacionScreen(correo: email),
                               ),
                             );
                           } else {
                             // Si fue un error normal (contraseña mala, etc.)
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(mensajeError), backgroundColor: Colors.red),
+                              SnackBar(
+                                content: Text(mensajeError),
+                                backgroundColor: Colors.red,
+                              ),
                             );
                           }
                         }
