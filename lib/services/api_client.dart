@@ -6,6 +6,8 @@ import '../models/usuario_respuesta_model.dart';
 import '../models/usuario_actualizar_model.dart';
 import '../models/usuario_registro_model.dart';
 import '../models/verificar_correo_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ApiClient {
   // Creamos la instancia principal de Dio
@@ -140,6 +142,64 @@ class ApiClient {
       rethrow;
     }
   }
+
+  // Método 1: Actualizar Datos Básicos
+Future<Map<String, dynamic>> actualizarPerfil(String nombre, String telefono) async {
+  final token = await _storage.read(key: 'token'); // Sacamos el token de la bóveda
+  
+  try {
+    final url = Uri.parse('usuario/perfil');
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // ¡La llave de acceso!
+      },
+      body: jsonEncode({
+        'nombreCompleto': nombre,
+        'telefono': telefono,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return {'success': true, 'mensaje': 'Perfil actualizado'};
+    } else {
+      final errorData = jsonDecode(response.body);
+      return {'success': false, 'mensaje': errorData['mensaje'] ?? 'Error al actualizar'};
+    }
+  } catch (e) {
+    return {'success': false, 'mensaje': 'No se pudo conectar con el servidor'};
+  }
+}
+
+// Método 2: Cambiar Contraseña
+Future<Map<String, dynamic>> cambiarContrasena(String actual, String nueva) async {
+  final token = await _storage.read(key: 'token');
+  
+  try {
+    final url = Uri.parse('usuario/cambiar-contrasena');
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'contrasenaActual': actual,
+        'nuevaContrasena': nueva,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return {'success': true, 'mensaje': 'Contraseña cambiada con éxito'};
+    } else {
+      final errorData = jsonDecode(response.body);
+      return {'success': false, 'mensaje': errorData['mensaje'] ?? 'Error de validación'};
+    }
+  } catch (e) {
+    return {'success': false, 'mensaje': 'Error de red'};
+  }
+}
 
 
 
