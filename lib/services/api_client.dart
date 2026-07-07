@@ -8,6 +8,7 @@ import '../models/usuario_registro_model.dart';
 import '../models/verificar_correo_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../models/sala_respuesta_model.dart';
 
 class ApiClient {
   // Creamos la instancia principal de Dio
@@ -93,6 +94,8 @@ class ApiClient {
     }
   }
 
+  //METODOS USUARIOS
+
   /// Registra un nuevo usuario y devuelve el código secreto (solo para desarrollo)
   Future<String> registrarUsuario(UsuarioRegistroModel modelo) async {
     try {
@@ -145,62 +148,147 @@ class ApiClient {
 
   // Método 1: Actualizar Datos Básicos
 Future<Map<String, dynamic>> actualizarPerfil(String nombre, String telefono) async {
-  final token = await _storage.read(key: 'token'); // Sacamos el token de la bóveda
-  
   try {
-    final url = Uri.parse('usuario/perfil');
-    final response = await http.put(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', // ¡La llave de acceso!
-      },
-      body: jsonEncode({
-        'nombreCompleto': nombre,
-        'telefono': telefono,
-      }),
+    // Usamos tu método genérico. ¡Dio se encarga del jsonEncode y del Token automáticamente!
+    final response = await putRequest(
+      '/usuario/perfil', 
+      {
+        'NombreCompleto': nombre, // La mayúscula vital para C#
+        'Telefono': telefono,
+      }
     );
 
-    if (response.statusCode == 200) {
-      return {'success': true, 'mensaje': 'Perfil actualizado'};
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      // Actualizamos la bóveda para el menú lateral
+      final storage = const FlutterSecureStorage();
+      await storage.write(key: 'nombre_usuario', value: nombre);
+      
+      return {'success': true, 'mensaje': 'Perfil actualizado con éxito'};
     } else {
-      final errorData = jsonDecode(response.body);
-      return {'success': false, 'mensaje': errorData['mensaje'] ?? 'Error al actualizar'};
+      return {'success': false, 'mensaje': 'Error al actualizar'};
     }
   } catch (e) {
-    return {'success': false, 'mensaje': 'No se pudo conectar con el servidor'};
+    // Con Dio, si el servidor devuelve un error (ej. 400 o 401), cae directamente aquí (DioException)
+    print('🚨 ERROR DIO: $e');
+    return {'success': false, 'mensaje': 'No se pudo actualizar el perfil'};
   }
 }
 
 // Método 2: Cambiar Contraseña
 Future<Map<String, dynamic>> cambiarContrasena(String actual, String nueva) async {
-  final token = await _storage.read(key: 'token');
-  
   try {
-    final url = Uri.parse('usuario/cambiar-contrasena');
-    final response = await http.put(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+    // Usamos tu método genérico de Dio. ¡Él pone el Token y el jsonEncode!
+    final response = await putRequest(
+      '/usuario/cambiar-contrasena',
+      {
+        'ContrasenaActual': actual, // Mayúscula inicial para C#
+        'NuevaContrasena': nueva,
       },
-      body: jsonEncode({
-        'contrasenaActual': actual,
-        'nuevaContrasena': nueva,
-      }),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
       return {'success': true, 'mensaje': 'Contraseña cambiada con éxito'};
     } else {
-      final errorData = jsonDecode(response.body);
-      return {'success': false, 'mensaje': errorData['mensaje'] ?? 'Error de validación'};
+      return {'success': false, 'mensaje': 'Error al cambiar la contraseña'};
     }
   } catch (e) {
-    return {'success': false, 'mensaje': 'Error de red'};
+    print('🚨 ERROR AL CAMBIAR CONTRASEÑA: $e');
+    // Si la contraseña actual es incorrecta, C# suele mandar un 400 BadRequest 
+    // y cae directamente en este catch gracias a Dio.
+    return {'success': false, 'mensaje': 'Verifica que tu contraseña actual sea correcta'};
   }
 }
 
+// ==========================================
+//          MÉTODOS PARA SALAS
+// ==========================================
+
+// 1. Crear una nueva sala
+Future<Map<String, dynamic>> crearSala(Map<String, dynamic> salaData) async {
+  try {
+    // Recuerda que al llamar este método desde la UI, salaData debe ir 
+    // con las llaves en PascalCase: {'NombreSala': 'Mi Sala', 'MontoCuota': 1000, ...}
+    final response = await postRequest('/sala', salaData);
+    
+    // 200 (OK) o 201 (Created)
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return {'success': true, 'mensaje': 'Sala creada exitosamente'};
+    } else {
+      return {'success': false, 'mensaje': 'Error al crear la sala'};
+    }
+  } catch (e) {
+    print('🚨 ERROR AL CREAR SALA: $e');
+    return {'success': false, 'mensaje': 'Verifica los datos de la sala'};
+  }
+}
+
+// 2. Obtener las salas que yo administro (Soy el creador)
+Future<List<SalaRespuestaModel>> obtenerSalasAdministradas() async {
+  try {
+    // Asegúrate de que esta ruta coincida con la de tu SalaController
+    final response = await getRequest('/sala/administradas'); 
+    
+    if (response.statusCode == 200) {
+      // Dio devuelve el JSON ya decodificado en response.data
+      List<dynamic> data = response.data;
+      return data.map((json) => SalaRespuestaModel.fromJson(json)).toList();
+    }
+    return [];
+  } catch (e) {
+    print('🚨 ERROR OBTENER SALAS ADMINISTRADAS: $e');
+    return [];
+  }
+}
+
+// 3. Obtener las salas en las que solo participo (El código de invitación)
+Future<List<SalaRespuestaModel>> obtenerSalasParticipadas() async {
+  try {
+    final response = await getRequest('/sala/participadas');
+    
+    if (response.statusCode == 200) {
+      List<dynamic> data = response.data;
+      return data.map((json) => SalaRespuestaModel.fromJson(json)).toList();
+    }
+    return [];
+  } catch (e) {
+    print('🚨 ERROR OBTENER SALAS PARTICIPADAS: $e');
+    return [];
+  }
+}
+
+// 4. Actualizar una sala existente
+Future<Map<String, dynamic>> actualizarSala(String salaId, Map<String, dynamic> salaActualizada) async {
+  try {
+    final response = await putRequest('/sala/$salaId', salaActualizada);
+    
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      return {'success': true, 'mensaje': 'Sala actualizada correctamente'};
+    } else {
+      return {'success': false, 'mensaje': 'Error al actualizar la sala'};
+    }
+  } catch (e) {
+    print('🚨 ERROR ACTUALIZAR SALA: $e');
+    return {'success': false, 'mensaje': 'No se pudo actualizar la sala'};
+  }
+}
+
+// 5. Unirse a una sala usando el código
+  Future<Map<String, dynamic>> unirseASala(String codigoSala) async {
+    try {
+      // Mandamos un body vacío {} porque el dato viaja en la URL
+      final response = await postRequest('/Salas/unirse/$codigoSala', {});
+      
+      if (response.statusCode == 200) {
+        return {'success': true, 'mensaje': '¡Te has unido a la sala con éxito!'};
+      } else {
+        return {'success': false, 'mensaje': 'Error al intentar unirse a la sala'};
+      }
+    } catch (e) {
+      print('🚨 ERROR AL UNIRSE A SALA: $e');
+      // Gracias a Dio, si C# responde un 400 (Ya estás en la sala) o 404 (No existe), caerá aquí
+      return {'success': false, 'mensaje': 'Verifica el código o puede que ya seas participante.'};
+    }
+  }
 
 
 }

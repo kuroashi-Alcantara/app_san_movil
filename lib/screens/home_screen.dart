@@ -28,13 +28,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // --- 2. FUNCIÓN QUE LEE LA BÓVEDA ---
-  Future<void> _cargarDatosUsuario() async {
-    final nombre = await _storage.read(key: 'nombre_usuario');
-    if (mounted) {
-      setState(() {
-        _nombreUsuario = nombre ?? 'Usuario';
-      });
-    }
+Future<void> _cargarDatosUsuario() async {
+    final storage = const FlutterSecureStorage();
+    final nombre = await storage.read(key: 'nombre_usuario') ?? 'Usuario';
+    
+    setState(() {
+      _nombreUsuario = nombre;
+    });
   }
 
   // 3. Convertimos esto en un "getter" (get) para poder pasarle la variable a _HomeContent
@@ -106,29 +106,39 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           // HEADER CLICKEABLE (PERFIL)
-          GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
-            },
-            child: UserAccountsDrawerHeader(
-              decoration: BoxDecoration(color: Colors.green[700]),
-              currentAccountPicture: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, size: 40, color: Colors.green),
-              ),
-              // --- 4. ACTUALIZAMOS EL TEXTO DEL MENÚ LATERAL ---
-              accountName: Text(
-                _nombreUsuario,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              accountEmail: const Text('Toca para ver tu perfil'),
-              margin: EdgeInsets.zero,
+          // HEADER CLICKEABLE (PERFIL)
+        GestureDetector(
+          onTap: () async { // <-- 1. Agregamos la palabra 'async' aquí
+            
+            // Cerramos el menú lateral primero
+            Navigator.pop(context);
+            
+            // 2. Le ponemos 'await' al viaje y pausamos el código aquí hasta que regreses
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            );
+
+            // 3. ¡Al regresar del Perfil, el código continúa aquí!
+            // Ejecutamos la función para que vuelva a leer la bóveda y haga setState
+            _cargarDatosUsuario(); 
+            
+          },
+          child: UserAccountsDrawerHeader(
+            decoration: BoxDecoration(color: Colors.green[700]),
+            currentAccountPicture: const CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, size: 40, color: Colors.green),
             ),
+            // --- 4. ACTUALIZAMOS EL TEXTO DEL MENÚ LATERAL ---
+            accountName: Text(
+              _nombreUsuario,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            accountEmail: const Text('Toca para ver tu perfil'),
+            margin: EdgeInsets.zero,
           ),
+        ),
 
           // --- OPCIONES DE GESTIÓN ---
           ListTile(
