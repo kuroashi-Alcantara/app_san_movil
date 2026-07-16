@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // --- 1. VARIABLES PARA EL USUARIO ---
   final _storage = const FlutterSecureStorage();
   String _nombreUsuario = 'Cargando...';
+  
 
   @override
   void initState() {

@@ -208,7 +208,7 @@ Future<Map<String, dynamic>> crearSala(Map<String, dynamic> salaData) async {
   try {
     // Recuerda que al llamar este método desde la UI, salaData debe ir 
     // con las llaves en PascalCase: {'NombreSala': 'Mi Sala', 'MontoCuota': 1000, ...}
-    final response = await postRequest('/sala', salaData);
+    final response = await postRequest('/Salas', salaData);
     
     // 200 (OK) o 201 (Created)
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -226,7 +226,7 @@ Future<Map<String, dynamic>> crearSala(Map<String, dynamic> salaData) async {
 Future<List<SalaRespuestaModel>> obtenerSalasAdministradas() async {
   try {
     // Asegúrate de que esta ruta coincida con la de tu SalaController
-    final response = await getRequest('/sala/administradas'); 
+    final response = await getRequest('/Salas/administradas'); 
     
     if (response.statusCode == 200) {
       // Dio devuelve el JSON ya decodificado en response.data
@@ -240,10 +240,23 @@ Future<List<SalaRespuestaModel>> obtenerSalasAdministradas() async {
   }
 }
 
+Future<Map<String, dynamic>?> obtenerDetalleSala(String idSala) async {
+    try {
+      final response = await getRequest('/Salas/$idSala');
+      if (response.statusCode == 200) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      print('🚨 ERROR GET DETALLE SALA: $e');
+      return null;
+    }
+  }
+
 // 3. Obtener las salas en las que solo participo (El código de invitación)
 Future<List<SalaRespuestaModel>> obtenerSalasParticipadas() async {
   try {
-    final response = await getRequest('/sala/participadas');
+    final response = await getRequest('/Salas/participadas');
     
     if (response.statusCode == 200) {
       List<dynamic> data = response.data;
@@ -259,7 +272,7 @@ Future<List<SalaRespuestaModel>> obtenerSalasParticipadas() async {
 // 4. Actualizar una sala existente
 Future<Map<String, dynamic>> actualizarSala(String salaId, Map<String, dynamic> salaActualizada) async {
   try {
-    final response = await putRequest('/sala/$salaId', salaActualizada);
+    final response = await putRequest('/Salas/$salaId', salaActualizada);
     
     if (response.statusCode == 200 || response.statusCode == 204) {
       return {'success': true, 'mensaje': 'Sala actualizada correctamente'};
