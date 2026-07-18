@@ -272,6 +272,17 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
+  // Métodos para gestionar las solicitudes (Se conectarán al backend más adelante)
+  Future<void> _aceptarSolicitud(String usuarioId) async {
+    print("Aceptando al usuario: $usuarioId");
+    // TODO: Llamar al endpoint PUT de C#
+  }
+
+  Future<void> _rechazarSolicitud(String usuarioId) async {
+    print("Rechazando al usuario: $usuarioId");
+    // TODO: Llamar al endpoint DELETE de C#
+  }
+
   
  //*********FIN FUNCIONES********
 
@@ -738,7 +749,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               TextButton.icon(
-                // 👇 AQUÍ ES EL ÚNICO CAMBIO: Llamamos a la función
                 onPressed: _mostrarDialogoInvitacion, 
                 icon: const Icon(Icons.add),
                 label: const Text('Agregar'),
@@ -747,21 +757,127 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           ),
           const SizedBox(height: 5),
 
-          // Tu diseño del contenedor vacío se queda intacto
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: const Center(
-              child: Text(
-                'Aún no hay participantes en este San.\n¡Empieza a agregar a tu grupo!',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
+          // 👇 A. LÓGICA DE FILTRADO (Extraemos los datos que mandó C#)
+          // Asumimos que la llave se llama 'participantes' en tu mapa _room
+          Builder(
+            builder: (context) {
+              // Obtenemos la lista completa, si es nula, usamos una vacía
+              final List<dynamic> todosLosParticipantes = _room!['participantes'] ?? [];
+              
+              // Filtramos usando el estado que configuramos en C#
+              final List<dynamic> pendientes = todosLosParticipantes
+                  .where((p) => p['estadoParticipacion'] == 0).toList();
+              
+              final List<dynamic> activos = todosLosParticipantes
+                  .where((p) => p['estadoParticipacion'] == 1).toList();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 👇 B. LA SALA DE ESPERA (Solo aparece si hay pendientes)
+                  if (pendientes.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 15),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50], // Fondo sutil para alertar
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.orange[300]!),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              children: [
+                                Icon(Icons.notifications_active, color: Colors.orange[800], size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Solicitudes Pendientes (${pendientes.length})', 
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange[800])
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Dibujamos cada solicitud
+                          ...pendientes.map((p) => ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.orange[200], 
+                              child: Icon(Icons.person, color: Colors.orange[800])
+                            ),
+                            title: Text(p['nombre'] ?? 'Usuario Desconocido', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: const Text('Quiere unirse al San', style: TextStyle(fontSize: 12)),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Botón de Aceptar
+                                IconButton(
+                                  icon: const Icon(Icons.check_circle, color: Colors.green, size: 28),
+                                  onPressed: () => _aceptarSolicitud(p['usuarioId'].toString()),
+                                ),
+                                // Botón de Rechazar
+                                IconButton(
+                                  icon: const Icon(Icons.cancel, color: Colors.red, size: 28),
+                                  onPressed: () => _rechazarSolicitud(p['usuarioId'].toString()),
+                                ),
+                              ],
+                            ),
+                          )),
+                        ],
+                      ),
+                    ),
+
+                  // 👇 C. LA LISTA OFICIAL (Los activos)
+                  if (activos.isEmpty)
+                    // Si no hay activos, mostramos tu contenedor gris original
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Aún no hay participantes en este San.\n¡Empieza a agregar a tu grupo!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    )
+                  else
+                    // Si ya hay activos, los mostramos en una lista normal
+                    ListView.builder(
+                      shrinkWrap: true, // Importante para que no de error dentro del ScrollView
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: activos.length,
+                      itemBuilder: (context, index) {
+                        final participante = activos[index];
+                        return Card(
+                          elevation: 1,
+                          margin: const EdgeInsets.only(bottom: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.green[100],
+                              child: Text(
+                                // Mostramos el turno o la inicial
+                                participante['numeroTurno'] != 0 
+                                  ? participante['numeroTurno'].toString() 
+                                  : '✓',
+                                style: TextStyle(color: Colors.green[800], fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            title: Text(participante['nombre'] ?? 'Usuario'),
+                            subtitle: const Text('Participante Activo'),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              );
+            }
           ),
         ],
       ),
