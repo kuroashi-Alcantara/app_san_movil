@@ -273,14 +273,84 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   }
 
   // Métodos para gestionar las solicitudes (Se conectarán al backend más adelante)
+ // Método para ACEPTAR
   Future<void> _aceptarSolicitud(String usuarioId) async {
-    print("Aceptando al usuario: $usuarioId");
-    // TODO: Llamar al endpoint PUT de C#
+    final String? salaId = _room?['id']?.toString();
+    if (salaId == null) return;
+
+    try {
+      // Usamos TU método genérico PUT
+      await _apiClient.putRequest('/ParticipantesSala/$salaId/aceptar/$usuarioId', {});
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Participante aceptado exitosamente!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // 👇 AQUÍ LLAMAS A TU FUNCIÓN QUE RECARGA LOS DATOS DE LA SALA
+        _loadRoomDetails();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al aceptar la solicitud.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
+  // Método para RECHAZAR
   Future<void> _rechazarSolicitud(String usuarioId) async {
-    print("Rechazando al usuario: $usuarioId");
-    // TODO: Llamar al endpoint DELETE de C#
+    final String? salaId = _room?['id']?.toString();
+    if (salaId == null) return;
+
+    // Confirmación opcional
+    bool confirmar = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Rechazar solicitud?'),
+        content: const Text('Este usuario será eliminado de la lista de pendientes.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), 
+            child: const Text('Rechazar', style: TextStyle(color: Colors.red))
+          ),
+        ],
+      ),
+    ) ?? false;
+
+    if (!confirmar) return;
+
+    try {
+      // Usamos TU nuevo método genérico DELETE
+      await _apiClient.deleteRequest('/ParticipantesSala/$salaId/rechazar/$usuarioId');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Solicitud rechazada.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        // 👇 RECARGAMOS LOS DATOS DE LA SALA
+        _loadRoomDetails();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al rechazar la solicitud.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   

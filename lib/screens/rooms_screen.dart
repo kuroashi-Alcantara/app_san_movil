@@ -176,8 +176,36 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                     Text('Participantes: ${sala.cantidadParticipantes}'),
                   ],
                 ),
-                trailing: Builder(
+               trailing: Builder(
                   builder: (context) {
+                    // 👇 1. Verificamos si el usuario está PENDIENTE (0) en esta sala
+                    if (sala.miEstadoParticipacion == 0) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[100],
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.orange[300]!),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.access_time, size: 14, color: Colors.orange[800]),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Pendiente',
+                              style: TextStyle(
+                                color: Colors.orange[800],
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12
+                              )
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // 👇 2. Si es ADMIN o está ACTIVO (1), mostramos el estado normal de la sala
                     final estilo = _obtenerEstiloEstado(sala.estado); 
                     
                     return Container(
@@ -198,7 +226,19 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                   }
                 ),
               onTap: () async {
-                  // 1. Agregamos await para esperar a que el usuario cierre la pantalla de detalles
+                  // 👇 1. Bloqueamos el acceso si la solicitud está pendiente
+                  if (sala.miEstadoParticipacion == 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Tu solicitud aún está en revisión por el administrador.'),
+                        backgroundColor: Colors.orange,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    return; // Salimos de la función sin navegar a detalles
+                  }
+
+                  // 2. Si no está pendiente, navegamos normalmente
                   final bool? necesitaActualizar = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -208,13 +248,9 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                     ),
                   );
 
-                  // 2. Si la pantalla de detalles devolvió 'true', recargamos la lista
+                  // 3. Si la pantalla de detalles devolvió 'true', recargamos la lista
                   if (necesitaActualizar == true) {
-                    setState(() {
-                      // Este setState vacío es mágico aquí: obliga a Flutter a reconstruir
-                      // el widget, lo que vuelve a llamar a _api.obtenerSalasAdministradas()
-                      // y trae todos tus datos frescos directamente desde C#.
-                    });
+                    setState(() {});
                   }
                 },
               ),

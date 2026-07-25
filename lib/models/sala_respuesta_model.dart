@@ -10,6 +10,7 @@ class SalaRespuestaModel {
   final int estado; // Enum
   final DateTime fechaInicio;
   final DateTime fechaCreacion;
+  final int? miEstadoParticipacion;
 
   SalaRespuestaModel({
     required this.id,
@@ -23,6 +24,7 @@ class SalaRespuestaModel {
     required this.estado,
     required this.fechaInicio,
     required this.fechaCreacion,
+    required this.miEstadoParticipacion,
   });
 
   factory SalaRespuestaModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class SalaRespuestaModel {
       estado: json['estado'],
       fechaInicio: DateTime.parse(json['fechaInicio']),
       fechaCreacion: DateTime.parse(json['fechaCreacion']),
+      miEstadoParticipacion: json['miEstadoParticipacion'],
     );
   }
 }

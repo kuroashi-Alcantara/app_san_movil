@@ -112,7 +112,7 @@ class ApiClient {
   /// Envía el código para activar la cuenta del usuario
   Future<void> verificarCorreo(VerificarCorreoModel modelo) async {
     try {
-      // Apuntamos al endpoint que creaste en C#
+      // Apuntamos al endpoint que creamos en C#
       await postRequest('/usuario/verificar-correo', modelo.toJson());
     } catch (e) {
       print("Error al verificar el correo: $e");
@@ -120,7 +120,13 @@ class ApiClient {
     }
   }
 
-  
+  Future<Response> deleteRequest(String endpoint) async {
+    try {
+      return await _dio.delete(endpoint);
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   //Metodo mostrar perfil logueado
   Future<UsuarioRespuestaModel> obtenerPerfilUsuario() async {
