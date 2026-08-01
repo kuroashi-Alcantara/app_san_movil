@@ -309,5 +309,27 @@ Future<Map<String, dynamic>> actualizarSala(String salaId, Map<String, dynamic> 
     }
   }
 
+  // --- MÉTODOS DE TURNOS ---
+  Future<Map<String, dynamic>> asignarTurnos(String salaId, List<Map<String, dynamic>> turnosPayload) async {
+    try {
+      final response = await postRequest('/ParticipantesSala/$salaId/asignar-turnos', {
+        'turnos': turnosPayload,
+      });
+
+      // Validamos usando el statusCode igual que en tus otros métodos
+      if (response.statusCode == 200) {
+        return {'success': true, 'mensaje': '¡Turnos asignados correctamente!'};
+      } else {
+        return {'success': false, 'mensaje': 'Error al intentar guardar los turnos.'};
+      }
+    } catch (e) {
+      print('🚨 ERROR AL ASIGNAR TURNOS: $e');
+      // Si C# manda un 400 (ej. sala ya iniciada) o 403 (no autorizado), cae aquí
+      return {'success': false, 'mensaje': 'Verifica que la sala siga en Reclutamiento y seas el creador.'};
+    }
+  }
+
+
+
 
 }

@@ -132,7 +132,7 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
   }
 
   // --- CONSTRUCTOR DE LAS LISTAS (Reutilizable para ambas pestañas) ---
-  Widget _buildListaSalas(Future<List<dynamic>> futureMetodo) {
+  Widget _buildListaSalas(Future<List<dynamic>> futureMetodo, bool esAdmin) {
     return FutureBuilder<List<dynamic>>(
       future: futureMetodo,
       builder: (context, snapshot) {
@@ -244,6 +244,7 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                     MaterialPageRoute(
                       builder: (context) => RoomDetailScreen(
                         roomId: sala.id.toString(),
+                        esAdministrador: esAdmin,
                       ),
                     ),
                   );
@@ -285,14 +286,14 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
           ],
         ),
       ),
-      body: TabBarView(
+     body: TabBarView(
         controller: _tabController,
         children: [
-          // Pestaña 1: Llama al endpoint de administradas
-          _buildListaSalas(_api.obtenerSalasAdministradas()),
+          // Pestaña 1: Llama al endpoint de administradas (Le mandamos TRUE)
+          _buildListaSalas(_api.obtenerSalasAdministradas(), true),
           
-          // Pestaña 2: Llama al endpoint de participadas
-          _buildListaSalas(_api.obtenerSalasParticipadas()),
+          // Pestaña 2: Llama al endpoint de participadas (Le mandamos FALSE)
+          _buildListaSalas(_api.obtenerSalasParticipadas(), false),
         ],
       ),
       
