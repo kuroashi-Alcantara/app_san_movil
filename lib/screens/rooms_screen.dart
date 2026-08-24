@@ -8,6 +8,7 @@ import 'room_detail_screen.dart';
 
 class RoomsScreen extends StatefulWidget {
   const RoomsScreen({super.key});
+  
 
   @override
   State<RoomsScreen> createState() => _RoomsScreenState();
@@ -17,6 +18,7 @@ class RoomsScreen extends StatefulWidget {
 class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ApiClient _api = ApiClient();
+  bool _mostrarCanceladas = false;
 
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
+/* Funciones */
   // --- LÓGICA PARA UNIRSE A UNA SALA (Pestaña Participo) ---
   void _mostrarDialogoUnirse() {
     final codigoController = TextEditingController();
@@ -104,6 +107,8 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
       }
     );
   }
+
+  //* Fin Funciones *//
 
   // --- AYUDANTES VISUALES ---
   String _obtenerFrecuencia(int valor) {
@@ -265,7 +270,6 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //aqui va
       appBar: AppBar(
         title: const Text('Mis Salas', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.green[700],
@@ -274,6 +278,30 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
+        // 👇 AGREGAMOS EL SWITCH DEL HISTORIAL AQUÍ
+        actions: [
+          Row(
+            children: [
+              const Text(
+                'Mostrar canceladas',
+                style: TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              Switch(
+                value: _mostrarCanceladas,
+                activeColor: Colors.red.shade300,
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: Colors.green.shade900,
+                onChanged: (bool value) {
+                  setState(() {
+                    _mostrarCanceladas = value;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
+        // 👆 FIN DEL SWITCH
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
@@ -286,14 +314,14 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
           ],
         ),
       ),
-     body: TabBarView(
+      body: TabBarView(
         controller: _tabController,
         children: [
-          // Pestaña 1: Llama al endpoint de administradas (Le mandamos TRUE)
-          _buildListaSalas(_api.obtenerSalasAdministradas(), true),
+          // 👇 Pestaña 1: Pasamos la variable a la API de administradas
+          _buildListaSalas(_api.obtenerSalasAdministradas(incluirCanceladas: _mostrarCanceladas), true),
           
-          // Pestaña 2: Llama al endpoint de participadas (Le mandamos FALSE)
-          _buildListaSalas(_api.obtenerSalasParticipadas(), false),
+          // 👇 Pestaña 2: Pasamos la variable a la API de participadas
+          _buildListaSalas(_api.obtenerSalasParticipadas(incluirCanceladas: _mostrarCanceladas), false),
         ],
       ),
       
@@ -309,7 +337,6 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
             );
             
             // Si el resultado es 'true', significa que se creó un San con éxito.
-            // Entonces hacemos un setState para que la lista vuelva a cargar.
             if (result == true) {
               setState(() {}); 
             }

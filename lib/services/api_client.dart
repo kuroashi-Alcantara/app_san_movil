@@ -6,9 +6,12 @@ import '../models/usuario_respuesta_model.dart';
 import '../models/usuario_actualizar_model.dart';
 import '../models/usuario_registro_model.dart';
 import '../models/verificar_correo_model.dart';
+import '../models/periodo_respuesta_model.dart';
+import '../models/pago_directo_model.dart';
+import '../models/sala_respuesta_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../models/sala_respuesta_model.dart';
+
 
 class ApiClient {
   // Creamos la instancia principal de Dio
@@ -229,22 +232,22 @@ Future<Map<String, dynamic>> crearSala(Map<String, dynamic> salaData) async {
 }
 
 // 2. Obtener las salas que yo administro (Soy el creador)
-Future<List<SalaRespuestaModel>> obtenerSalasAdministradas() async {
-  try {
-    // Asegúrate de que esta ruta coincida con la de tu SalaController
-    final response = await getRequest('/Salas/administradas'); 
-    
-    if (response.statusCode == 200) {
-      // Dio devuelve el JSON ya decodificado en response.data
-      List<dynamic> data = response.data;
-      return data.map((json) => SalaRespuestaModel.fromJson(json)).toList();
+  Future<List<SalaRespuestaModel>> obtenerSalasAdministradas({bool incluirCanceladas = false}) async {
+    try {
+      // Asegúrate de que esta ruta coincida con la de tu SalaController
+      final response = await getRequest('/Salas/administradas?incluirCanceladas=$incluirCanceladas'); 
+      
+      if (response.statusCode == 200) {
+        // Dio devuelve el JSON ya decodificado en response.data
+        List<dynamic> data = response.data;
+        return data.map((json) => SalaRespuestaModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('🚨 ERROR OBTENER SALAS ADMINISTRADAS: $e');
+      return [];
     }
-    return [];
-  } catch (e) {
-    print('🚨 ERROR OBTENER SALAS ADMINISTRADAS: $e');
-    return [];
   }
-}
 
 Future<Map<String, dynamic>?> obtenerDetalleSala(String idSala) async {
     try {
@@ -260,20 +263,20 @@ Future<Map<String, dynamic>?> obtenerDetalleSala(String idSala) async {
   }
 
 // 3. Obtener las salas en las que solo participo (El código de invitación)
-Future<List<SalaRespuestaModel>> obtenerSalasParticipadas() async {
-  try {
-    final response = await getRequest('/Salas/participadas');
-    
-    if (response.statusCode == 200) {
-      List<dynamic> data = response.data;
-      return data.map((json) => SalaRespuestaModel.fromJson(json)).toList();
+  Future<List<SalaRespuestaModel>> obtenerSalasParticipadas({bool incluirCanceladas = false}) async {
+    try {
+      final response = await getRequest('/Salas/participadas?incluirCanceladas=$incluirCanceladas');
+      
+      if (response.statusCode == 200) {
+        List<dynamic> data = response.data;
+        return data.map((json) => SalaRespuestaModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('🚨 ERROR OBTENER SALAS PARTICIPADAS: $e');
+      return [];
     }
-    return [];
-  } catch (e) {
-    print('🚨 ERROR OBTENER SALAS PARTICIPADAS: $e');
-    return [];
   }
-}
 
 // 4. Actualizar una sala existente
 Future<Map<String, dynamic>> actualizarSala(String salaId, Map<String, dynamic> salaActualizada) async {
@@ -326,6 +329,124 @@ Future<Map<String, dynamic>> actualizarSala(String salaId, Map<String, dynamic> 
       print('🚨 ERROR AL ASIGNAR TURNOS: $e');
       // Si C# manda un 400 (ej. sala ya iniciada) o 403 (no autorizado), cae aquí
       return {'success': false, 'mensaje': 'Verifica que la sala siga en Reclutamiento y seas el creador.'};
+    }
+  }
+
+  /// Detona la creación del calendario y pasa la sala a EnCurso
+  Future<Map<String, dynamic>> iniciarSan(String salaId) async {
+    try {
+      // Mandamos un body vacío {} porque el ID ya va en la URL
+      final response = await postRequest('/Salas/$salaId/iniciar', {});
+      
+      if (response.statusCode == 200) {
+        // Tu backend en C# devuelve un objeto con "Mensaje", "TotalRondas", etc.
+        // Lo atrapamos para mostrarlo en la UI.
+        return {
+          'success': true, 
+          'mensaje': response.data['mensaje'] ?? 'San iniciado exitosamente. Calendario generado.'
+        };
+      } else {
+        return {'success': false, 'mensaje': 'Error al intentar iniciar el San.'};
+      }
+    } catch (e) {
+      print('🚨 ERROR AL INICIAR SAN: $e');
+      // Si C# manda un 400 (no hay participantes) o 403 (no eres creador), cae aquí
+      return {'success': false, 'mensaje': 'No se pudo iniciar. Verifica que haya participantes inscritos.'};
+    }
+  }
+
+
+
+
+
+
+  // ==========================================
+  // MÉTODOS DE PERIODOS / TURNOS
+  // ==========================================
+
+ /// Obtiene la lista de turnos (periodos) generados para una sala
+  Future<List<PeriodoRespuestaModel>> getPeriodosPorSala(String salaId) async {
+    try {
+      // Usamos el getRequest genérico que ya tiene tu Token inyectado
+      final response = await getRequest('/Periodos/sala/$salaId');
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = response.data;
+        return data.map((json) => PeriodoRespuestaModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('🚨 ERROR AL OBTENER PERIODOS: $e');
+      return [];
+    }
+  }
+  
+
+
+
+  // ==========================================
+  //      MÉTODOS DE TRANSACCIONES / PAGOS
+  // ==========================================
+
+  /// Registra un pago en efectivo (o auto-descuento) saltándose la foto
+  Future<Map<String, dynamic>> registrarPagoDirecto(PagoDirectoModel pago) async {
+    try {
+      // Usamos tu postRequest enviando el modelo convertido a JSON
+      final response = await postRequest(
+        '/Transacciones/pago-directo', 
+        pago.toJson(),
+      );
+      
+      if (response.statusCode == 200) {
+        return {
+          'success': true, 
+          'mensaje': response.data['mensaje'] ?? 'Pago registrado con éxito.'
+        };
+      } else {
+        return {'success': false, 'mensaje': 'Error al intentar registrar el pago.'};
+      }
+    } catch (e) {
+      print('🚨 ERROR AL REGISTRAR PAGO DIRECTO: $e');
+      // Capturamos el 404 (turno no existe) o cualquier otro error del servidor
+      return {'success': false, 'mensaje': 'No se pudo registrar el pago verifique los datos.'};
+    }
+  }
+
+  Future<List<dynamic>> obtenerTransaccionesPorPeriodo(String periodoId) async {
+  try {
+    final response = await getRequest('/Transacciones/periodo/$periodoId');
+    if (response.statusCode == 200) {
+      return response.data as List<dynamic>;
+    }
+    return [];
+  } catch (e) {
+    print('🚨 ERROR AL OBTENER TRANSACCIONES: $e');
+    return [];
+  }
+}
+
+  // ==========================================
+  // FINALIZAR TURNO / DESEMBOLSO
+  // ==========================================
+  Future<Map<String, dynamic>> finalizarPeriodo(String periodoId) async {
+    try {
+      final response = await postRequest('/Periodos/$periodoId/finalizar', {});
+      
+      // Si el código es 200, todo salió bien
+      if (response.statusCode == 200) {
+        return {
+          'success': true, 
+          'mensaje': response.data['mensaje'] ?? 'Turno finalizado.'
+        };
+      }
+      return {'success': false, 'mensaje': 'Ocurrió un error inesperado.'};
+    } catch (e) {
+      // Capturamos el error 400 (BadRequest) de C# si faltan pagos
+      print('🚨 ERROR AL FINALIZAR TURNO: $e');
+      return {
+        'success': false, 
+        'mensaje': 'No se puede finalizar. Verifica que todos los participantes hayan pagado y sido aprobados.'
+      };
     }
   }
 
